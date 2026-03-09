@@ -1,0 +1,72 @@
+import express from "express";
+import cors from "cors";
+import OpenAI from "openai";
+
+const app = express();
+
+app.use(cors());
+app.use(express.json());
+
+const openai = new OpenAI({
+  apiKey: "YOUR_OPENAI_API_KEY"
+});
+
+// Agent prompts
+const agents = {
+
+startup: "You are a startup idea generator. Give creative business ideas with cost and steps.",
+
+study: "You are a study tutor. Explain topics simply for students.",
+
+content: "You are a content creator assistant. Generate social media posts, captions and ideas.",
+
+marketing: "You are a marketing expert. Create marketing plans and promotion strategies.",
+
+research: "You are a research assistant. Provide detailed explanations with facts.",
+
+photo: "You are a photo editing expert. Suggest editing steps and design improvements.",
+
+image: "You are an AI image prompt generator. Generate detailed prompts for AI image creation."
+
+};
+
+app.post("/chat", async (req, res) => {
+
+const userMessage = req.body.message;
+const agent = req.body.agent;
+
+const systemPrompt = agents[agent] || "You are a helpful AI assistant.";
+
+try {
+
+const completion = await openai.chat.completions.create({
+
+model: "gpt-4.1-mini",
+
+messages: [
+
+{ role: "system", content: systemPrompt },
+
+{ role: "user", content: userMessage }
+
+]
+
+});
+
+res.json({
+reply: completion.choices[0].message.content
+});
+
+} catch (error) {
+
+res.json({ reply: "Error generating response" });
+
+}
+
+});
+
+app.listen(5000, () => {
+
+console.log("AgentHubs server running");
+
+});
