@@ -1,72 +1,128 @@
-import express from "express";
-import cors from "cors";
-import OpenAI from "openai";
+import express from "express"
+import cors from "cors"
+import OpenAI from "openai"
+import axios from "axios"
 
-const app = express();
+const app = express()
 
-app.use(cors());
-app.use(express.json());
+app.use(cors())
+app.use(express.json())
 
 const openai = new OpenAI({
-  apiKey: "YOUR_OPENAI_API_KEY"
-});
+apiKey:"YOUR_OPENAI_API_KEY"
+})
 
-// Agent prompts
+let requestCount = {}
+
+// Agents
 const agents = {
 
-startup: "You are a startup idea generator. Give creative business ideas with cost and steps.",
+startup:"You generate startup ideas with cost and steps",
 
-study: "You are a study tutor. Explain topics simply for students.",
+study:"You explain study topics in simple way",
 
-content: "You are a content creator assistant. Generate social media posts, captions and ideas.",
+content:"You create social media posts captions and ideas",
 
-marketing: "You are a marketing expert. Create marketing plans and promotion strategies.",
+marketing:"You create marketing plans",
 
-research: "You are a research assistant. Provide detailed explanations with facts.",
+research:"You provide detailed research",
 
-photo: "You are a photo editing expert. Suggest editing steps and design improvements.",
+photo:"You suggest photo editing steps",
 
-image: "You are an AI image prompt generator. Generate detailed prompts for AI image creation."
-
-};
-
-app.post("/chat", async (req, res) => {
-
-const userMessage = req.body.message;
-const agent = req.body.agent;
-
-const systemPrompt = agents[agent] || "You are a helpful AI assistant.";
-
-try {
-
-const completion = await openai.chat.completions.create({
-
-model: "gpt-4.1-mini",
-
-messages: [
-
-{ role: "system", content: systemPrompt },
-
-{ role: "user", content: userMessage }
-
-]
-
-});
-
-res.json({
-reply: completion.choices[0].message.content
-});
-
-} catch (error) {
-
-res.json({ reply: "Error generating response" });
+image:"You generate prompts for AI image generation"
 
 }
 
-});
+// AI Chat
+app.post("/chat", async (req,res)=>{
 
-app.listen(5000, () => {
+const {message,agent,user} = req.body
 
-console.log("AgentHubs server running");
+if(!requestCount[user]) requestCount[user]=0
 
-});
+if(requestCount[user] >= 10){
+return res.json({
+reply:"Daily limit reached (10 requests)"
+})
+}
+
+requestCount[user]++
+
+const systemPrompt = agents[agent] || "You are helpful AI"
+
+const completion = await openai.chat.completions.create({
+
+model:"gpt-4.1-mini",
+
+messages:[
+{role:"system",content:systemPrompt},
+{role:"user",content:message}
+]
+
+})
+
+res.json({
+reply:completion.choices[0].message.content
+})
+
+})
+
+// Image Generation
+app.post("/image", async(req,res)=>{
+
+const {prompt} = req.body
+
+const result = await openai.images.generate({
+
+model:"gpt-image-1",
+
+prompt:prompt,
+size:"1024x1024"
+
+})
+
+res.json({
+image:result.data[0].url
+})
+
+})
+
+// Search Engine
+app.post("/search", async(req,res)=>{
+
+const query = req.body.query
+
+const result = await axios.get("https://serpapi.com/search.json",{
+params:{
+q:query,
+api_key:"YOUR_SERPAPI_KEY"
+}
+})
+
+const snippets = result.data.organic_results
+.slice(0,3)
+.map(r=>r.snippet)
+.join("\n")
+
+const completion = await openai.chat.completions.create({
+
+model:"gpt-4.1-mini",
+
+messages:[
+{
+role:"user",
+content:`Answer using this info:\n${snippets}`
+}
+]
+
+})
+
+res.json({
+answer:completion.choices[0].message.content
+})
+
+})
+
+app.listen(5000,()=>{
+console.log("AgentHubs Server Running")
+})
