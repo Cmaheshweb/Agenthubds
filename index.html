@@ -1,13 +1,173 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<title>AgentHubs</title>
+
+<style>
+
+body{
+background:black;
+color:white;
+font-family:Arial;
+margin:0;
+}
+
+.sidebar{
+width:220px;
+background:#111;
+height:100vh;
+padding:20px;
+float:left;
+}
+
+.chat{
+margin-left:220px;
+padding:20px;
+}
+
+button{
+margin:5px;
+padding:10px;
+}
+
+input{
+padding:10px;
+width:60%;
+}
+
+img{
+width:300px;
+margin-top:10px;
+}
+
+</style>
+</head>
+
+<body>
+
 <div class="sidebar">
 
 <h2>AgentHubs</h2>
 
-<button onclick="setAgent('startup')">Startup Agent</button>
-<button onclick="setAgent('study')">Study Agent</button>
-<button onclick="setAgent('content')">Content Agent</button>
-<button onclick="setAgent('marketing')">Marketing Agent</button>
-<button onclick="setAgent('research')">Research Agent</button>
-<button onclick="setAgent('photo')">Photo Editing Agent</button>
-<button onclick="setAgent('image')">Image Creator Agent</button>
+<button onclick="setAgent('startup')">Startup</button>
+<button onclick="setAgent('study')">Study</button>
+<button onclick="setAgent('content')">Content</button>
+<button onclick="setAgent('marketing')">Marketing</button>
+<button onclick="setAgent('research')">Research</button>
+<button onclick="setAgent('photo')">Photo</button>
+<button onclick="setAgent('image')">Image</button>
+
+<hr>
+
+<button onclick="mode='ai'">AI Mode</button>
+<button onclick="mode='search'">Search Mode</button>
 
 </div>
+
+<div class="chat">
+
+<div id="messages"></div>
+
+<input id="input" placeholder="Ask anything">
+
+<button onclick="send()">Send</button>
+
+</div>
+
+<script>
+
+let currentAgent="startup"
+let mode="ai"
+let user="user1"
+
+function setAgent(agent){
+currentAgent=agent
+}
+
+async function send(){
+
+const input=document.getElementById("input").value
+
+document.getElementById("messages").innerHTML +=
+"<p><b>You:</b> "+input+"</p>"
+
+if(mode==="ai"){
+
+if(currentAgent==="image"){
+
+const res = await fetch("http://localhost:5000/image",{
+
+method:"POST",
+
+headers:{
+"Content-Type":"application/json"
+},
+
+body:JSON.stringify({
+prompt:input
+})
+
+})
+
+const data = await res.json()
+
+document.getElementById("messages").innerHTML +=
+"<img src='"+data.image+"'>"
+
+}else{
+
+const res = await fetch("http://localhost:5000/chat",{
+
+method:"POST",
+
+headers:{
+"Content-Type":"application/json"
+},
+
+body:JSON.stringify({
+message:input,
+agent:currentAgent,
+user:user
+})
+
+})
+
+const data = await res.json()
+
+document.getElementById("messages").innerHTML +=
+"<p><b>AI:</b> "+data.reply+"</p>"
+
+}
+
+}
+
+if(mode==="search"){
+
+const res = await fetch("http://localhost:5000/search",{
+
+method:"POST",
+
+headers:{
+"Content-Type":"application/json"
+},
+
+body:JSON.stringify({
+query:input
+})
+
+})
+
+const data = await res.json()
+
+document.getElementById("messages").innerHTML +=
+"<p><b>Search AI:</b> "+data.answer+"</p>"
+
+}
+
+}
+
+</script>
+
+</body>
+</html>
