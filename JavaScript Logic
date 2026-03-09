@@ -1,0 +1,34 @@
+let currentAgent = "startup";
+
+function setAgent(agent){
+currentAgent = agent;
+}
+
+async function send(){
+
+const input=document.getElementById("input").value;
+
+document.getElementById("messages").innerHTML +=
+"<p><b>You:</b> "+input+"</p>";
+
+const res = await fetch("http://localhost:5000/chat",{
+
+method:"POST",
+
+headers:{
+"Content-Type":"application/json"
+},
+
+body:JSON.stringify({
+message: input,
+agent: currentAgent
+})
+
+});
+
+const data = await res.json();
+
+document.getElementById("messages").innerHTML +=
+"<p><b>AI:</b> "+data.reply+"</p>";
+
+}
