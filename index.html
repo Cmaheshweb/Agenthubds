@@ -2,46 +2,92 @@
 <html>
 
 <head>
+
 <title>AgentHubs</title>
 
 <style>
 
 body{
-background:black;
-color:white;
-font-family:Arial;
 margin:0;
+font-family:Arial;
+background:#0f0f0f;
+color:white;
+display:flex;
+height:100vh;
 }
 
 .sidebar{
 width:220px;
-background:#111;
-height:100vh;
+background:#1b1b1b;
 padding:20px;
-float:left;
+}
+
+.sidebar h2{
+margin-top:0;
+}
+
+.agent{
+display:block;
+margin:8px 0;
+padding:10px;
+background:#2a2a2a;
+cursor:pointer;
+border-radius:5px;
+}
+
+.agent:hover{
+background:#3a3a3a;
+}
+
+.main{
+flex:1;
+display:flex;
+flex-direction:column;
 }
 
 .chat{
-margin-left:220px;
+flex:1;
+overflow:auto;
 padding:20px;
 }
 
-button{
-margin:5px;
-padding:10px;
+.message{
+margin:10px 0;
 }
 
-input{
-padding:10px;
-width:60%;
+.user{
+color:#4da6ff;
 }
 
-img{
-width:300px;
-margin-top:10px;
+.ai{
+color:#00ff99;
+}
+
+.inputBox{
+display:flex;
+padding:15px;
+background:#1b1b1b;
+}
+
+.inputBox input{
+flex:1;
+padding:10px;
+border:none;
+outline:none;
+background:#2a2a2a;
+color:white;
+}
+
+.inputBox button{
+padding:10px 20px;
+border:none;
+background:#4da6ff;
+color:white;
+cursor:pointer;
 }
 
 </style>
+
 </head>
 
 <body>
@@ -50,124 +96,56 @@ margin-top:10px;
 
 <h2>AgentHubs</h2>
 
-<button onclick="setAgent('startup')">Startup</button>
-<button onclick="setAgent('study')">Study</button>
-<button onclick="setAgent('content')">Content</button>
-<button onclick="setAgent('marketing')">Marketing</button>
-<button onclick="setAgent('research')">Research</button>
-<button onclick="setAgent('photo')">Photo</button>
-<button onclick="setAgent('image')">Image</button>
-
-<hr>
-
-<button onclick="mode='ai'">AI Mode</button>
-<button onclick="mode='search'">Search Mode</button>
+<div class="agent">Startup Agent</div>
+<div class="agent">Study Agent</div>
+<div class="agent">Content Agent</div>
+<div class="agent">Marketing Agent</div>
+<div class="agent">Research Agent</div>
+<div class="agent">Photo Agent</div>
+<div class="agent">Image Agent</div>
 
 </div>
 
-<div class="chat">
+<div class="main">
 
-<div id="messages"></div>
+<div class="chat" id="chat"></div>
 
-<input id="input" placeholder="Ask anything">
+<div class="inputBox">
 
-<button onclick="send()">Send</button>
+<input id="input" placeholder="Ask your AI agent...">
+
+<button onclick="sendMessage()">Send</button>
+
+</div>
 
 </div>
 
 <script>
 
-let currentAgent="startup"
-let mode="ai"
-let user="user1"
+function sendMessage(){
 
-function setAgent(agent){
-currentAgent=agent
-}
+let input=document.getElementById("input").value
 
-async function send(){
+let chat=document.getElementById("chat")
 
-const input=document.getElementById("input").value
+let userMsg=document.createElement("div")
+userMsg.className="message user"
+userMsg.innerText="You: "+input
 
-document.getElementById("messages").innerHTML +=
-"<p><b>You:</b> "+input+"</p>"
+chat.appendChild(userMsg)
 
-if(mode==="ai"){
+let aiMsg=document.createElement("div")
+aiMsg.className="message ai"
+aiMsg.innerText="AI: thinking..."
 
-if(currentAgent==="image"){
+chat.appendChild(aiMsg)
 
-const res = await fetch("http://localhost:5000/image",{
-
-method:"POST",
-
-headers:{
-"Content-Type":"application/json"
-},
-
-body:JSON.stringify({
-prompt:input
-})
-
-})
-
-const data = await res.json()
-
-document.getElementById("messages").innerHTML +=
-"<img src='"+data.image+"'>"
-
-}else{
-
-const res = await fetch("http://localhost:5000/chat",{
-
-method:"POST",
-
-headers:{
-"Content-Type":"application/json"
-},
-
-body:JSON.stringify({
-message:input,
-agent:currentAgent,
-user:user
-})
-
-})
-
-const data = await res.json()
-
-document.getElementById("messages").innerHTML +=
-"<p><b>AI:</b> "+data.reply+"</p>"
-
-}
-
-}
-
-if(mode==="search"){
-
-const res = await fetch("http://localhost:5000/search",{
-
-method:"POST",
-
-headers:{
-"Content-Type":"application/json"
-},
-
-body:JSON.stringify({
-query:input
-})
-
-})
-
-const data = await res.json()
-
-document.getElementById("messages").innerHTML +=
-"<p><b>Search AI:</b> "+data.answer+"</p>"
-
-}
+document.getElementById("input").value=""
 
 }
 
 </script>
 
 </body>
+
 </html>
