@@ -123,6 +123,11 @@ answer:completion.choices[0].message.content
 
 })
 
+app.use(express.static(__dirname));
+
+app.get("/", (req,res)=>{
+res.sendFile(path.join(__dirname,"index.html"));
+});
 app.listen(5000,()=>{
 console.log("AgentHubs running")
 })
